@@ -17,7 +17,7 @@ Remember that you can use ?read_excel if you want more information on how this f
 Start by using read_excel to grab the data from the "DAVIDSON" sheet from cell A7 through cell M19.
 
 ```{r}
-cause_of_death <- read_excel(# fill this in)
+cause_of_death <- read_excel('../data/LCD_byRegionSex_2019.xlsx', range='DAVIDSON!A7:M19')
 ```
 
 The column names are not very good, so let's rename them. If we can create a vector of column names, we can use the rename_with function to rename all columns at once.
@@ -31,7 +31,8 @@ column_names <- c("cause",
 Use the rename_with function with this vector of column names. 
 
 ```{r}
-# Fill this in
+cause_of_death <- cause_of_death |> 
+  rename_with(~ column_names)
 ```
 
 
@@ -41,16 +42,18 @@ See the tidyr cheat sheet here: https://raw.githubusercontent.com/rstudio/cheats
 
 Use the pivot_longer funtion and pivot all but the cause column. The result should have 3 columns, cause, name, and value.
 ```{r}
-# Fill this in
+cause_of_death <- cause_of_death |> 
+  pivot_longer(-cause)
 ```
 
 Now, it would probably be best if we had separate columns for "sex" and "measure". Let's do that now. Use the separate_wider_delim function to separate the name column into two columns, "sex" and "measure"
 ```{r}
-# Fill this in
+cause_of_death <- cause_of_death |> 
+  separate_wider_delim(cols = name, delim = '_', names = c('sex', 'measure'), too_many = "merge")
 ```
 
 
-Now, we can create a bar chart to show the rate of death by cause with a side-by-side bar chart so that can compare rates by sex.
+Now, we can create a bar chart to show the rate of death by cause with a side-by-side bar chart so that we can compare rates by sex.
 
 To adjust the order that the bars are displayed, we can make use of the forcats library. See the cheat sheet here: https://raw.githubusercontent.com/rstudio/cheatsheets/main/factors.pdf.
 Make sure that the bars are sorted alphabetically by cause.

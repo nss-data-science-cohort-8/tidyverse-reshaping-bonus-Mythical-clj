@@ -58,13 +58,25 @@ Now, we can create a bar chart to show the rate of death by cause with a side-by
 To adjust the order that the bars are displayed, we can make use of the forcats library. See the cheat sheet here: https://raw.githubusercontent.com/rstudio/cheatsheets/main/factors.pdf.
 Make sure that the bars are sorted alphabetically by cause.
 ```{r}
-# Fill this in
+library(forcats)
+
+cause_of_death |>
+  filter(measure == 'rate') |> 
+  group_by(cause) |> 
+  ggplot(aes(x= fct_reorder(cause, sex), y=value, fill=sex)) +
+  geom_col(position='dodge', stat='identity') +
+  theme(panel.background = element_blank(),
+          axis.text.x = element_text(angle = 45, hjust = 1))
 ```
+
+
 
 But, what if we don't want to have to filter to what we want to plot each time and just want to specify a column? We can again reshape our data so that each measure is a column.
 Use the pivot_wider function to reshape your data so that it has one row per cause and sex and columns for rank, number, rate, and age-adjusted rate.
+
 ```{r}
-# Fill this in
+cause_of_death <- cause_of_death |> 
+  pivot_wider(names_from = measure, values_from = value)
 ```
 
 
@@ -74,7 +86,31 @@ Create a function which takes as input a sheet name and which reads in the data 
 See the user-defined functions section of https://www.datacamp.com/tutorial/functions-in-r-a-tutorial for more information.
 
 ```{r}
-# Fill this in
+library(glue)
+```
+
+
+```{r}
+cod_func <- function(sheet){
+  column_names <- c("cause",
+                  "total_rank", "total_number", "total_rate", "total_age_adjusted",
+                  "male_rank", "male_number", "male_rate", "male_age_adjusted",
+                  "female_rank", "female_number", "female_rate", "female_age_adjusted")
+  df <- read_excel('../data/LCD_byRegionSex_2019.xlsx',
+                   range = glue('{sheet}!A7:M19')) |>     
+    rename_with(~ column_names) |> 
+    mutate_at(vars(-cause), as.double) |>
+    pivot_longer(-cause) |> 
+    separate_wider_delim(cols = name, 
+                         delim = '_', 
+                         names = c('sex', 
+                                   'measure'), 
+                         too_many = "merge") |> 
+    pivot_wider(names_from = measure, values_from = value) |> 
+    mutate(county = glue('{sheet}')) |> 
+    print(df)
+}
+  
 ```
 
 We can get a list of sheet names using the excel_sheets function.
@@ -84,5 +120,5 @@ sheets <- readxl::excel_sheets('../data/LCD_byRegionSex_2019.xlsx')
 
 Finally, use the map function (https://purrr.tidyverse.org/reference/map.html) to apply the function you created above to all of the sheets in the Excel file and combine them together into a single tibble.
 ```{r}
-
+all_counties_cod <- map(sheets, cod_func)
 ```

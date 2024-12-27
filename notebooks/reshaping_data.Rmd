@@ -107,8 +107,8 @@ cod_func <- function(sheet){
                                    'measure'), 
                          too_many = "merge") |> 
     pivot_wider(names_from = measure, values_from = value) |> 
-    mutate(county = glue('{sheet}')) |> 
-    print(df)
+    mutate(county = glue('{sheet}'))
+  return(df)
 }
   
 ```
@@ -119,6 +119,12 @@ sheets <- readxl::excel_sheets('../data/LCD_byRegionSex_2019.xlsx')
 ```
 
 Finally, use the map function (https://purrr.tidyverse.org/reference/map.html) to apply the function you created above to all of the sheets in the Excel file and combine them together into a single tibble.
+
 ```{r}
-all_counties_cod <- map(sheets, cod_func)
+all_counties_cod <- map(sheets, cod_func) |> 
+  bind_rows()
 ```
+
+
+
+
